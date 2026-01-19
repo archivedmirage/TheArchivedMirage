@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -158,21 +159,21 @@ margin-bottom:14px;
 
 /* LOGIN PANEL UI */
 #loginOverlay {
-position: fixed; inset: 0;
-background: rgba(0,0,0,0.6);
-backdrop-filter: blur(8px);
-display: none;
-align-items: center; justify-content: center;
-z-index: 10000;
+  position: fixed; inset: 0; 
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  display: none; 
+  align-items: center; justify-content: center; 
+  z-index: 10000;
 }
 .login-box {
-background: var(--card);
-border: 1px solid var(--border);
-padding: 30px;
-border-radius: 20px;
-width: 90%;
-max-width: 320px;
-text-align: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 30px;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 320px;
+  text-align: center;
 }
 .login-btn-group { display: flex; gap: 10px; margin-top: 10px; }
 .btn-cancel { background: #666; }
@@ -182,22 +183,21 @@ text-align: center;
 <body>
 
 <div class="intro-screen">
-<div class="intro-glass">
-<h1>The Archived Mirage</h1>
-<p>Timeless luxury • Curated artifacts</p>
-</div>
+  <div class="intro-glass">
+    <h1>The Archived Mirage</h1>
+    <p>Timeless luxury • Curated artifacts</p>
+  </div>
 </div>
 
 <div id="loginOverlay">
-<div class="login-box">
-<h3>Admin Access</h3>
-<input type="password" id="adminPassInput" placeholder="Enter Password"
-onkeypress="if(event.key==='Enter') checkLogin()">
-<div class="login-btn-group">
-<button onclick="checkLogin()">Login</button>
-<button onclick="closeLogin()" class="btn-cancel">Cancel</button>
-</div>
-</div>
+  <div class="login-box">
+    <h3>Admin Access</h3>
+    <input type="password" id="adminPassInput" placeholder="Enter Password" onkeypress="if(event.key==='Enter') checkLogin()">
+    <div class="login-btn-group">
+      <button onclick="checkLogin()">Login</button>
+      <button onclick="closeLogin()" class="btn-cancel">Cancel</button>
+    </div>
+  </div>
 </div>
 
 <header>
@@ -242,7 +242,48 @@ onkeypress="if(event.key==='Enter') checkLogin()">
 <div id="cartDrawer"></div>
 
 <script>
-/* ---------------- FIX STARTS HERE ---------------- */
+const productsEl=document.getElementById("products");
+const cartDrawer=document.getElementById("cartDrawer");
+const cartOverlay=document.getElementById("cartOverlay");
+const cartCount=document.getElementById("cartCount");
+const contactPhone=document.getElementById("contactPhone");
+const contactEmail=document.getElementById("contactEmail");
+const admin=document.getElementById("admin");
+const loginOverlay = document.getElementById("loginOverlay");
+
+const ADMIN_PASSWORD="samariboys@buisness2026";
+
+// This variable resets to false every time the page is refreshed
+let isAdminLoggedIn = false; 
+
+let theme=localStorage.getItem("theme")||"light";
+document.body.classList.toggle("dark",theme==="dark");
+
+let contact=JSON.parse(localStorage.getItem("contact"))||
+{phone:"+971543108125",email:"nuaimshariff@gmail.com"};
+
+let products=JSON.parse(localStorage.getItem("products"))||[
+{id:1,name:"Product One",price:100,stock:5,image:"https://via.placeholder.com/400"},
+{id:2,name:"Product Two",price:150,stock:3,image:"https://via.placeholder.com/400"}
+];
+
+let cart=[];
+let orders=JSON.parse(localStorage.getItem("orders"))||[];
+let current="home";
+
+function go(id){
+document.getElementById(current).classList.add("previous");
+document.getElementById(id).classList.add("active");
+document.getElementById(current).classList.remove("active");
+setTimeout(()=>document.getElementById(current).classList.remove("previous"),450);
+current=id;closeCart();
+}
+
+function toggleTheme(){
+theme=theme==="dark"?"light":"dark";
+document.body.classList.toggle("dark",theme==="dark");
+localStorage.setItem("theme",theme);
+}
 
 function save(){
 localStorage.setItem("products",JSON.stringify(products));
@@ -250,37 +291,155 @@ localStorage.setItem("orders",JSON.stringify(orders));
 localStorage.setItem("contact",JSON.stringify(contact));
 }
 
-/* PERSIST STOCK */
+function renderProducts(){
+productsEl.innerHTML="";
+products.forEach(p=>{
+productsEl.innerHTML+=`
+<div class="product">
+<img src="${p.image}">
+<div class="info">
+<strong>${p.name}</strong><br>${p.price} AED
+<button onclick="addToCart(${p.id})">Add to Cart</button>
+</div></div>`;
+});
+}
+
 function addToCart(id){
 const p=products.find(x=>x.id===id);
 if(!p||p.stock<=0)return alert("Out of stock");
-
 let item=cart.find(i=>i.id===id);
 item?item.qty++:cart.push({...p,qty:1});
+p.stock--;renderCart();
+}
 
-p.stock--;
-save();
-renderProducts();
-renderCart();
+function renderCart(){
+cartDrawer.innerHTML="<h3>Your Cart</h3>";
+let total=0;
+cart.forEach((i,idx)=>{
+total+=i.price*i.qty;
+cartDrawer.innerHTML+=`
+<div><strong>${i.name}</strong>
+<div class="qty">
+<button onclick="changeQty(${idx},-1)">−</button>
+${i.qty}
+<button onclick="changeQty(${idx},1)">+</button>
+</div></div><hr>`;
+});
+cartDrawer.innerHTML+=`
+<strong>Total: ${total} AED</strong><br><br>
+<button onclick="go('checkout')">Checkout</button>`;
+cartCount.innerText=cart.reduce((a,b)=>a+b.qty,0);
 }
 
 function changeQty(i,v){
-const item=cart[i];
-const product=products.find(p=>p.id===item.id);
-
-item.qty+=v;
-product.stock-=v;
-
-if(item.qty<=0){
-product.stock+=item.qty;
-cart.splice(i,1);
-}
-
-save();
-renderProducts();
+cart[i].qty+=v;
+if(cart[i].qty<=0)cart.splice(i,1);
 renderCart();
 }
-/* ---------------- FIX ENDS HERE ---------------- */
+
+function openCart(){cartOverlay.style.display="block";cartDrawer.style.right="0"}
+function closeCart(){cartOverlay.style.display="none";cartDrawer.style.right="-360px"}
+
+function placeOrder(){
+orders.push({
+id:Date.now(),
+items:[...cart],
+name:custName.value,
+phone:custPhone.value,
+address:custAddress.value,
+status:"Pending"
+});
+cart=[];save();renderCart();go("home");
+}
+
+/* UPDATED AUTH LOGIC */
+function adminLogin(){
+    if(isAdminLoggedIn){
+        renderAdmin();
+    } else {
+        loginOverlay.style.display = "flex";
+        document.getElementById("adminPassInput").focus();
+    }
+}
+
+function checkLogin(){
+    const input = document.getElementById("adminPassInput");
+    if(input.value === ADMIN_PASSWORD){
+        isAdminLoggedIn = true;
+        closeLogin();
+        renderAdmin();
+        input.value = "";
+    } else {
+        alert("Incorrect password");
+        input.value = "";
+    }
+}
+
+function closeLogin(){
+    loginOverlay.style.display = "none";
+}
+
+function renderAdmin(){
+go("admin");
+admin.innerHTML=`
+<h2>Admin Panel</h2>
+<button onclick="adminLogout()">Logout</button><hr>
+
+<h3>Contact</h3>
+<input value="${contact.phone}" onchange="contact.phone=this.value;save();renderContact()">
+<input value="${contact.email}" onchange="contact.email=this.value;save();renderContact()"><hr>
+
+<h3>Products</h3>
+${products.map((p,i)=>`
+<div class="admin-box">
+<input value="${p.name}" onchange="products[${i}].name=this.value;save();renderProducts()">
+<input type="number" value="${p.price}" onchange="products[${i}].price=+this.value;save();renderProducts()">
+<input type="number" value="${p.stock}" onchange="products[${i}].stock=+this.value;save()">
+<input value="${p.image}" onchange="products[${i}].image=this.value;save();renderProducts()">
+<button onclick="deleteProduct(${i})">Delete</button>
+</div>`).join("")}
+<button onclick="addProduct()">Add Product</button><hr>
+
+<h3>Orders</h3>
+${orders.length?orders.map((o,i)=>`
+<div class="admin-box">
+<strong>${o.name}</strong><br>
+${o.items.map(it=>it.name+" x"+it.qty).join("<br>")}
+<br><span class="status ${o.status.toLowerCase()}">${o.status}</span><br>
+${o.status==="Pending"?`<button onclick="markDelivered(${i})">Mark Delivered</button>`:""}
+</div>`).join(""):"<p>No orders yet</p>"}
+`;
+}
+
+function adminLogout(){
+    isAdminLoggedIn = false;
+    go("home");
+}
+
+function addProduct(){
+products.push({id:Date.now(),name:"New Product",price:0,stock:0,image:"https://via.placeholder.com/400"});
+save();renderAdmin();renderProducts();
+}
+
+function deleteProduct(i){
+if(!confirm("Delete product?"))return;
+products.splice(i,1);
+save();renderAdmin();renderProducts();
+}
+
+function markDelivered(i){
+orders[i].status="Delivered";
+save();renderAdmin();
+}
+
+function renderContact(){
+contactPhone.innerText=contact.phone;
+contactEmail.innerText=contact.email;
+}
+
+renderProducts();
+renderCart();
+renderContact();
 </script>
 
 </body>
