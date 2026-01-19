@@ -5,200 +5,356 @@
 <title>The Archived Mirage</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;600&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+
 <style>
-:root{--bg:#f6f6f7;--card:#ffffff;--text:#202223;--border:#e1e3e5;--primary:#000000;}
-body.dark{--bg:#0e0f11;--card:#16181c;--text:#eaeaea;--border:#2a2d33;}
-*{box-sizing:border-box; transition: 0.2s;}
-body{margin:0;font-family:Inter,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
-.brand-font {font-family: 'UnifrakturMaguntia', cursive; font-size: 1.5rem;}
-header{background:var(--card); border-bottom:1px solid var(--border); padding:15px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100;}
-nav a {margin-left:15px; cursor:pointer; font-weight:600; text-decoration:none; color:inherit;}
-.badge {background:red; color:white; padding:2px 6px; border-radius:50%; font-size:11px;}
-section {display:none; padding:20px; max-width:1200px; margin:auto;}
-section.active {display:block;}
-.grid {display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:20px;}
-.product {background:var(--card); border:1px solid var(--border); border-radius:15px; padding:10px; text-align:center;}
-.product img {width:100%; height:200px; object-fit:cover; border-radius:10px;}
-button {background:var(--primary); color:white; border:none; padding:10px; border-radius:8px; width:100%; cursor:pointer; margin-top:10px; font-weight:bold;}
-input, textarea {width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--text);}
-#cartSidebar {position:fixed; top:0; right:-100%; width:320px; height:100%; background:var(--card); border-left:1px solid var(--border); z-index:200; padding:20px; transition:0.4s;}
-#cartSidebar.open {right:0;}
-.order-card {border:1px solid var(--border); padding:15px; border-radius:10px; margin-bottom:10px;}
+/* THEME VARIABLES */
+:root {
+    --bg: #f6f6f7;
+    --card: #ffffff;
+    --text: #202223;
+    --border: #e1e3e5;
+    --primary: #000000;
+    --accent: #8e8e8e;
+}
+
+body.dark {
+    --bg: #0e0f11;
+    --card: #16181c;
+    --text: #eaeaea;
+    --border: #2a2d33;
+    --primary: #ffffff;
+    --accent: #666666;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Inter, sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; transition: background 0.4s, color 0.4s; }
+.brand-font { font-family: 'UnifrakturMaguntia', cursive; }
+
+/* LUXURY INTRO */
+#intro {
+    position: fixed; inset: 0; background: #000; z-index: 10000;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: white; animation: fadeOut 1s ease 2.5s forwards;
+}
+#intro .line { width: 1px; height: 80px; background: white; margin-bottom: 20px; animation: grow 1.5s ease; }
+@keyframes grow { from { height: 0; } to { height: 80px; } }
+@keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+
+/* HEADER & THEME SLIDER */
+header { background: var(--card); border-bottom: 1px solid var(--border); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 500; }
+.nav-right { display: flex; align-items: center; gap: 20px; }
+nav a { cursor: pointer; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; text-decoration: none; color: inherit; }
+
+/* THEME SLIDER CSS */
+.theme-switch { position: relative; width: 50px; height: 24px; }
+.theme-switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+    position: absolute; cursor: pointer; inset: 0; background-color: #ccc;
+    transition: .4s; border-radius: 34px;
+}
+.slider:before {
+    position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 3px;
+    background-color: white; transition: .4s; border-radius: 50%;
+}
+input:checked + .slider { background-color: #2196F3; }
+input:checked + .slider:before { transform: translateX(26px); }
+
+/* SECTION SYSTEM */
+main { position: relative; height: calc(100vh - 70px); width: 100vw; overflow: hidden; }
+section {
+    position: absolute; inset: 0; padding: 25px; 
+    transition: 0.6s cubic-bezier(0.77, 0, 0.175, 1); 
+    transform: translateX(100%); background: var(--bg); 
+    visibility: hidden; 
+    overflow-y: auto; 
+    z-index: 1;
+    /* FIX: Prevents hidden sections from blocking clicks */
+    pointer-events: none; 
+}
+section.active { 
+    transform: translateX(0); 
+    visibility: visible; 
+    z-index: 10; 
+    /* FIX: Re-enables clicks for the visible section */
+    pointer-events: all; 
+}
+
+/* CART & CHECKOUT UI */
+#cartDrawer {
+    position: fixed; top: 0; right: -400px; width: 380px; height: 100%;
+    background: var(--card); z-index: 2000; transition: 0.4s;
+    display: flex; flex-direction: column; box-shadow: -10px 0 30px rgba(0,0,0,0.2);
+}
+#cartDrawer.open { right: 0; }
+.cart-content { flex: 1; overflow-y: auto; padding: 20px; }
+.cart-footer { padding: 20px; border-top: 1px solid var(--border); background: var(--card); }
+.checkout-btn { 
+    background: var(--primary); color: var(--bg); width: 100%; padding: 18px; 
+    font-weight: bold; cursor: pointer; border: none; font-size: 1rem;
+}
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; max-width: 1200px; margin: auto; }
+.product { background: var(--card); border: 1px solid var(--border); }
+.product img { width: 100%; height: 300px; object-fit: cover; }
+.info { padding: 15px; text-align: center; }
+.admin-box { background: var(--card); border: 1px solid var(--border); padding: 20px; border-radius: 8px; margin-bottom: 15px; }
+input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border); background: transparent; color: inherit; }
+#cartOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1500; display: none; }
 </style>
 </head>
-<body class="dark">
+
+<body>
+
+<div id="intro">
+    <div class="line"></div>
+    <h1 class="brand-font" style="font-size: 2.5rem; letter-spacing: 4px;">The Archived Mirage</h1>
+    <p style="font-size: 0.7rem; letter-spacing: 3px; margin-top: 10px; opacity: 0.8;">100% REAL & AUTHENTIC</p>
+</div>
 
 <header>
-    <div class="brand-font" onclick="go('home')" style="cursor:pointer">The Archived Mirage</div>
-    <nav>
-        <a onclick="go('store')">Store</a>
-        <a onclick="adminLogin()">Admin</a>
-        <a onclick="toggleCart()">🛒<span class="badge" id="cartCount">0</span></a>
-        <a onclick="toggleTheme()">🌓</a>
-    </nav>
+    <div class="brand-font" onclick="go('home')" style="cursor:pointer; font-size: 1.6rem;">The Archived Mirage</div>
+    <div class="nav-right">
+        <label class="theme-switch">
+            <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+            <span class="slider"></span>
+        </label>
+        <nav>
+            <a onclick="go('home')">Home</a>
+            <a onclick="go('store')">Store</a>
+            <a onclick="go('contact')">Contact</a>
+            <a onclick="go('admin')">Admin</a>
+            <a onclick="openCart()" style="position:relative; font-size: 1.2rem;">🛒<span id="cartCount" style="color:red; font-weight:bold; font-size:12px; position:absolute; top:-5px; right:-10px;">0</span></a>
+        </nav>
+    </div>
 </header>
 
-<section id="home" class="active">
-    <div style="text-align:center; padding:80px 0;">
-        <h1 class="brand-font" style="font-size:3.5rem;">The Archived Mirage</h1>
-        <p>Premium Authentic Clothing</p>
-        <button onclick="go('store')" style="width:200px;">Enter Shop</button>
+<main>
+    <section id="home" class="active">
+        <div style="text-align:center; padding-top:15vh;">
+            <h1 class="brand-font" style="font-size:4rem; margin:0;">The Archived Mirage</h1>
+            <p style="letter-spacing:5px; opacity: 0.7; font-weight: 600;">100% REAL AND AUTHENTIC PRODUCTS</p>
+            <button onclick="go('store')" style="background:var(--primary); color:var(--bg); padding:18px 45px; border:none; margin-top:30px; cursor:pointer; font-weight:bold; letter-spacing: 2px;">EXPLORE STORE</button>
+        </div>
+    </section>
+
+    <section id="store">
+        <h2 style="text-align:center; font-family:'Playfair Display'; margin-bottom:40px;">The Collection</h2>
+        <div class="grid" id="products"></div>
+    </section>
+
+    <section id="contact">
+        <div style="max-width:800px; margin:auto; padding-top: 50px;">
+            <h2 class="brand-font" style="font-size:3rem; text-align:center;">Contact Us</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px;">
+                <div>
+                    <h3 style="font-family:'Playfair Display';">Get in Touch</h3>
+                    <p style="opacity:0.8; line-height:1.6;">Have questions about our archived pieces? Reach out through the form or our direct channels.</p>
+                    <div style="margin-top:20px;">
+                        <p><strong>WhatsApp:</strong> <span id="displayWA">Loading...</span></p>
+                        <p><strong>Email:</strong> <span id="displayEmail">Loading...</span></p>
+                        <p><strong>Location:</strong> Dubai, United Arab Emirates</p>
+                    </div>
+                </div>
+                <div class="admin-box">
+                    <input id="contactName" placeholder="Your Name">
+                    <input id="contactSubject" placeholder="Subject">
+                    <textarea id="contactMsg" placeholder="Message" rows="5"></textarea>
+                    <button onclick="sendInquiry()" style="background:var(--primary); color:var(--bg); width:100%; padding:15px; border:none; font-weight:bold; cursor:pointer;">SEND MESSAGE</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="checkout">
+        <div style="max-width:600px; margin:auto;">
+            <h2 class="brand-font" style="font-size:2rem;">Secure Checkout</h2>
+            <div id="checkSummary" class="admin-box"></div>
+            <div class="admin-box">
+                <input id="cN" placeholder="Full Name">
+                <input id="cP" placeholder="Phone Number">
+                <textarea id="cA" placeholder="Delivery Address" rows="4"></textarea>
+                <button onclick="placeOrder()" style="background:#25D366; color:white; font-size:1.1rem; padding:15px; width:100%; border:none; font-weight:bold; cursor:pointer;">Complete via WhatsApp</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="admin">
+        <div id="adminAuth" style="max-width:300px; margin:100px auto; text-align:center;">
+            <input type="password" id="pass" placeholder="Admin Password">
+            <button onclick="checkAdmin()" style="background:var(--primary); color:var(--bg); width:100%; padding:10px; border:none; margin-top:10px; cursor:pointer;">Login</button>
+        </div>
+        <div id="adminPanel" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2 class="brand-font">Dashboard</h2>
+                <button onclick="location.reload()" style="padding:5px 15px;">Logout</button>
+            </div>
+            <div class="admin-box" style="background:var(--primary); color:var(--bg); text-align:center;">
+                <p style="font-size:0.8rem; margin:0;">MONTHLY REVENUE</p>
+                <h1 id="revDisplay" style="margin:10px 0;">0 AED</h1>
+            </div>
+            <h3>Contact Settings</h3>
+            <div class="admin-box">
+                <input id="setWA" placeholder="WhatsApp Number">
+                <input id="setEmail" placeholder="Email Address">
+                <button onclick="saveSettings()" style="background:var(--primary); color:var(--bg); width:100%; padding:10px; border:none; cursor:pointer;">Save Settings</button>
+            </div>
+            <h3>Active Orders</h3><div id="admOrders"></div>
+            <h3>Inventory</h3>
+            <button onclick="window.addP()" style="background:green; color:white; padding:10px; width:100%; border:none; margin-bottom:20px; cursor:pointer;">+ Add Product</button>
+            <div id="admProds"></div>
+        </div>
+    </section>
+</main>
+
+<div id="cartOverlay" onclick="closeCart()"></div>
+<div id="cartDrawer">
+    <div style="padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between;">
+        <span style="font-weight:bold;">Shopping Bag</span>
+        <span onclick="closeCart()" style="cursor:pointer;">CLOSE</span>
     </div>
-</section>
-
-<section id="store">
-    <h2>Shop All</h2>
-    <div class="grid" id="productGrid"></div>
-</section>
-
-<section id="checkout">
-    <h2>Checkout</h2>
-    <div id="checkoutSummary"></div>
-    <hr>
-    <input id="name" placeholder="Name">
-    <input id="phone" placeholder="WhatsApp Number">
-    <textarea id="address" placeholder="Address"></textarea>
-    <button onclick="placeOrder()" style="background:green;">Confirm Order</button>
-</section>
-
-<section id="admin">
-    <div style="display:flex; gap:10px; margin-bottom:20px;">
-        <button onclick="showAdminTab('p')">Products</button>
-        <button onclick="showAdminTab('o')">Orders</button>
-        <button onclick="location.reload()" style="background:#666">Logout</button>
+    <div class="cart-content" id="cartItemsList"></div>
+    <div class="cart-footer">
+        <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-weight:bold;">
+            <span>Total</span>
+            <span id="cartTotalDisplay">0 AED</span>
+        </div>
+        <button class="checkout-btn" onclick="go('checkout')">GO TO CHECKOUT</button>
     </div>
-    <div id="adminView"></div>
-</section>
-
-<div id="cartSidebar">
-    <h3>Your Cart <span onclick="toggleCart()" style="float:right; cursor:pointer;">×</span></h3>
-    <div id="cartList"></div>
-    <div id="cartTotal" style="margin:20px 0; font-weight:bold;"></div>
-    <button onclick="go('checkout')" id="checkoutBtn" style="display:none">Checkout</button>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue, push, remove, update, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDFLAL6I7ID_BY5weBVf6wx99jJXelhCH4",
-  authDomain: "the-archived-mirage.firebaseapp.com",
-  databaseURL: "https://the-archived-mirage-default-rtdb.firebaseio.com",
-  projectId: "the-archived-mirage",
-  storageBucket: "the-archived-mirage.firebasestorage.app",
-  messagingSenderId: "615352427360",
-  appId: "1:615352427360:web:dbebc6e1baac1b1742f405"
+const conf = {
+    apiKey: "AIzaSyDFLAL6I7ID_BY5weBVf6wx99jJXelhCH4",
+    authDomain: "the-archived-mirage.firebaseapp.com",
+    databaseURL: "https://the-archived-mirage-default-rtdb.firebaseio.com",
+    projectId: "the-archived-mirage",
+    storageBucket: "the-archived-mirage.firebasestorage.app",
+    appId: "1:615352427360:web:dbebc6e1baac1b1742f405"
 };
 
-const app = initializeApp(firebaseConfig);
+const app = initializeApp(conf);
 const db = getDatabase(app);
+let prods = [], cart = [], orders = [], settings = {}, curr = "home";
 
-let products = [];
-let orders = [];
-let cart = [];
-let adminMode = false;
+// --- THEME ---
+window.toggleTheme = () => {
+    document.body.classList.toggle('dark');
+};
 
-// SYNC
-onValue(ref(db, 'products'), (s) => {
-    const d = s.val();
-    products = d ? Object.entries(d).map(([id, v]) => ({...v, id})) : [];
-    renderStore();
-    if(adminMode) showAdminTab('p');
-});
-
-onValue(ref(db, 'orders'), (s) => {
-    const d = s.val();
-    orders = d ? Object.entries(d).map(([id, v]) => ({...v, id})) : [];
-    if(adminMode) showAdminTab('o');
-});
-
-// CORE FUNCTIONS
+// --- NAVIGATION ---
 window.go = (id) => {
-    document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    if(id === 'checkout') renderCheckout();
-    toggleCart(false);
+    if(id === curr) return;
+    document.getElementById(curr).classList.remove("active");
+    document.getElementById(id).classList.add("active");
+    curr = id;
+    window.closeCart();
 };
 
-window.toggleTheme = () => document.body.classList.toggle('dark');
-
-window.toggleCart = (show) => {
-    const s = document.getElementById('cartSidebar');
-    show === false ? s.classList.remove('open') : s.classList.toggle('open');
+window.openCart = () => {
+    document.getElementById('cartOverlay').style.display = "block";
+    document.getElementById('cartDrawer').classList.add('open');
+    renderCart();
+};
+window.closeCart = () => {
+    document.getElementById('cartOverlay').style.display = "none";
+    document.getElementById('cartDrawer').classList.remove('open');
 };
 
-function renderStore() {
-    document.getElementById('productGrid').innerHTML = products.map(p => `
-        <div class="product">
-            <img src="${p.image}">
-            <h4>${p.name}</h4>
-            <p>${p.price} AED</p>
-            <button onclick="addToCart('${p.id}')">Add to Cart</button>
-        </div>
-    `).join('');
-}
-
-window.addToCart = (id) => {
-    const p = products.find(x => x.id === id);
-    const item = cart.find(i => i.id === id);
-    item ? item.qty++ : cart.push({...p, qty: 1});
-    updateUI();
-    toggleCart(true);
+// --- CONTACT LOGIC ---
+window.sendInquiry = () => {
+    const name = document.getElementById('contactName').value;
+    const sub = document.getElementById('contactSubject').value;
+    const msg = document.getElementById('contactMsg').value;
+    if(!name || !msg) return alert("Please fill Name and Message");
+    
+    const mailtoLink = `mailto:${settings.email}?subject=${encodeURIComponent(sub || 'Inquiry')}&body=${encodeURIComponent("Name: "+name+"\n\n"+msg)}`;
+    window.location.href = mailtoLink;
 };
 
-function updateUI() {
-    document.getElementById('cartCount').innerText = cart.reduce((a,b)=>a+b.qty, 0);
-    document.getElementById('cartList').innerHTML = cart.map(i=>`<div>${i.name} x${i.qty}</div>`).join('');
-    const total = cart.reduce((a,b)=>a+(b.price*b.qty), 0);
-    document.getElementById('cartTotal').innerText = total > 0 ? `Total: ${total} AED` : "Empty";
-    document.getElementById('checkoutBtn').style.display = total > 0 ? "block" : "none";
-}
+// --- LOGIC ---
+window.addToCart = (fid) => {
+    const p = prods.find(x => x.fid === fid);
+    const ex = cart.find(i => i.fid === fid);
+    ex ? ex.qty++ : cart.push({...p, qty: 1});
+    document.getElementById('cartCount').innerText = cart.reduce((a,b)=>a+b.qty,0);
+    window.openCart();
+};
 
-function renderCheckout() {
-    document.getElementById('checkoutSummary').innerHTML = cart.map(i=>`<div>${i.name} (${i.qty})</div>`).join('');
+function renderCart() {
+    const list = document.getElementById('cartItemsList');
+    if(cart.length === 0) { list.innerHTML = "<p>Empty</p>"; return; }
+    let total = cart.reduce((a,b) => a+(b.price*b.qty), 0);
+    list.innerHTML = cart.map(i => `
+        <div style="margin-bottom:15px; display:flex; justify-content:space-between;">
+            <span>${i.name} (x${i.qty})</span>
+            <span>${i.price * i.qty} AED</span>
+        </div>`).join('');
+    document.getElementById('cartTotalDisplay').innerText = total + " AED";
+    document.getElementById('checkSummary').innerHTML = `<h3>Items: ${cart.length}</h3><hr>Total: ${total} AED`;
 }
 
 window.placeOrder = () => {
-    const n = document.getElementById('name').value;
-    const p = document.getElementById('phone').value;
-    const a = document.getElementById('address').value;
-    if(!n || !p || !a) return alert("Fill all fields");
-
-    const order = { name:n, phone:p, addr:a, items:cart, status:'Pending', date: new Date().toLocaleDateString() };
+    const n = document.getElementById('cN').value;
+    if(!n || cart.length === 0) return alert("Missing Info");
+    const total = cart.reduce((a,b)=>a+(b.price*b.qty),0);
+    const order = { customer: n, phone: document.getElementById('cP').value, items: cart, total: total, status: 'Pending', date: new Date().toISOString() };
     push(ref(db, 'orders'), order).then(() => {
-        window.open(`https://wa.me/971543108125?text=Order From ${n}`);
-        cart = []; updateUI(); go('home');
+        const msg = `Order from ${n}:\n` + cart.map(i => `- ${i.name} x${i.qty}`).join('\n') + `\nTotal: ${total} AED`;
+        window.open(`https://wa.me/${settings.whatsapp || '971543108125'}?text=${encodeURIComponent(msg)}`);
+        cart = []; document.getElementById('cartCount').innerText="0"; go('home');
     });
 };
 
-window.adminLogin = () => {
-    if(prompt("Pass?") === "samariboys@buisness2026") { adminMode = true; go('admin'); showAdminTab('p'); }
-};
+// --- FIREBASE SYNC ---
+onValue(ref(db, 'settings'), (s) => {
+    settings = s.val() || { whatsapp: "971543108125", email: "nuaimshariff@gmail.com" };
+    document.getElementById('setWA').value = settings.whatsapp;
+    document.getElementById('setEmail').value = settings.email;
+    document.getElementById('displayWA').innerText = "+" + settings.whatsapp;
+    document.getElementById('displayEmail').innerText = settings.email;
+});
 
-window.showAdminTab = (tab) => {
-    const v = document.getElementById('adminView');
-    if(tab === 'p') {
-        v.innerHTML = `<button onclick="addP()">+ Add Product</button>` + products.map(p=>`
-            <div class="order-card">
-                <input value="${p.name}" onchange="upP('${p.id}','name',this.value)">
-                <input value="${p.price}" onchange="upP('${p.id}','price',this.value)">
-                <button onclick="delP('${p.id}')" style="background:red">Delete</button>
-            </div>`).join('');
+onValue(ref(db, 'products'), (s) => {
+    prods = s.val() ? Object.entries(s.val()).map(([id, v]) => ({...v, fid: id})) : [];
+    document.getElementById("products").innerHTML = prods.map(p => `
+        <div class="product"><img src="${p.image}"><div class="info">
+        <strong>${p.name}</strong><br>${p.price} AED
+        <button onclick="addToCart('${p.fid}')" style="background:var(--primary); color:var(--bg); border:none; width:100%; padding:10px; margin-top:10px; cursor:pointer;">ADD TO BAG</button>
+        </div></div>`).join('');
+    renderInventory();
+});
+
+onValue(ref(db, 'orders'), (s) => {
+    orders = s.val() ? Object.entries(s.val()).map(([id, v]) => ({...v, fid: id})) : [];
+    const rev = orders.filter(o => o.status === 'Delivered' && new Date(o.date).getMonth() === new Date().getMonth()).reduce((a,b)=>a+Number(b.total), 0);
+    document.getElementById('revDisplay').innerText = rev + " AED";
+    document.getElementById('admOrders').innerHTML = orders.slice().reverse().map(o => `
+        <div class="admin-box" style="border-left: 4px solid ${o.status==='Pending'?'orange':'green'};">
+            ${o.customer} - ${o.total} AED<br>
+            <button onclick="window.upStatus('${o.fid}', 'Delivered')" style="background:green; color:white; border:none; padding:5px; margin-top:5px; cursor:pointer;">Deliver</button>
+            <button onclick="window.delO('${o.fid}')" style="background:red; color:white; border:none; padding:5px; margin-top:5px; cursor:pointer;">Delete</button>
+        </div>`).join('');
+});
+
+// --- ADMIN HELPERS ---
+window.checkAdmin = () => { 
+    if(document.getElementById('pass').value === "samariboys@buisness2026") { 
+        document.getElementById('adminAuth').style.display="none"; 
+        document.getElementById('adminPanel').style.display="block"; 
     } else {
-        v.innerHTML = orders.map(o=>`
-            <div class="order-card">
-                <strong>${o.name} - ${o.status}</strong><br>
-                Items: ${o.items.map(i=>i.name).join(', ')}<br>
-                <button onclick="upO('${o.id}','Delivered')">Mark Delivered</button>
-            </div>`).join('');
+        alert("Incorrect Password");
     }
 };
-
-window.addP = () => push(ref(db, 'products'), {name:"New Item", price:0, image:"https://via.placeholder.com/200"});
-window.upP = (id, k, v) => set(ref(db, `products/${id}/${k}`), k==='price'?Number(v):v);
-window.delP = (id) => confirm("Del?") && remove(ref(db, `products/${id}`));
-window.upO = (id, s) => set(ref(db, `orders/${id}/status`), s);
+window.saveSettings = () => set(ref(db, 'settings'), { whatsapp: document.getElementById('setWA').value, email: document.getElementById('setEmail').value }).then(() => alert("Saved"));
+function renderInventory() { document.getElementById('admProds').innerHTML = prods.map(p => `<div class="admin-box"><input value="${p.name}" onchange="window.upP('${p.fid}', 'name', this.value)"><input value="${p.price}" onchange="window.upP('${p.fid}', 'price', this.value)"><button onclick="window.delP('${p.fid}')" style="background:red; color:white; border:none; padding:5px; cursor:pointer;">Delete</button></div>`).join(''); }
+window.addP = () => push(ref(db, 'products'), {name: "New Item", price: 0, image: "https://via.placeholder.com/400"});
+window.upP = (id, k, v) => update(ref(db, `products/${id}`), {[k]: k==='price'?Number(v):v});
+window.delP = (id) => confirm("Delete?") && remove(ref(db, `products/${id}`));
+window.upStatus = (id, s) => update(ref(db, `orders/${id}`), {status: s});
+window.delO = (id) => confirm("Clear?") && remove(ref(db, `orders/${id}`));
 
 </script>
 </body>
