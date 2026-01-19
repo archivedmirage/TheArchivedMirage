@@ -68,14 +68,12 @@ section {
     visibility: hidden; 
     overflow-y: auto; 
     z-index: 1;
-    /* FIX: Prevents hidden sections from blocking clicks */
     pointer-events: none; 
 }
 section.active { 
     transform: translateX(0); 
     visibility: visible; 
     z-index: 10; 
-    /* FIX: Re-enables clicks for the visible section */
     pointer-events: all; 
 }
 
@@ -186,7 +184,7 @@ input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px s
         <div id="adminPanel" style="display:none;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h2 class="brand-font">Dashboard</h2>
-                <button onclick="location.reload()" style="padding:5px 15px;">Logout</button>
+                <button onclick="location.reload()" style="padding:5px 15px; cursor:pointer;">Logout</button>
             </div>
             <div class="admin-box" style="background:var(--primary); color:var(--bg); text-align:center;">
                 <p style="font-size:0.8rem; margin:0;">MONTHLY REVENUE</p>
@@ -194,7 +192,7 @@ input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px s
             </div>
             <h3>Contact Settings</h3>
             <div class="admin-box">
-                <input id="setWA" placeholder="WhatsApp Number">
+                <input id="setWA" placeholder="WhatsApp (e.g. 971500000000)">
                 <input id="setEmail" placeholder="Email Address">
                 <button onclick="saveSettings()" style="background:var(--primary); color:var(--bg); width:100%; padding:10px; border:none; cursor:pointer;">Save Settings</button>
             </div>
@@ -239,12 +237,6 @@ const app = initializeApp(conf);
 const db = getDatabase(app);
 let prods = [], cart = [], orders = [], settings = {}, curr = "home";
 
-// --- THEME ---
-window.toggleTheme = () => {
-    document.body.classList.toggle('dark');
-};
-
-// --- NAVIGATION ---
 window.go = (id) => {
     if(id === curr) return;
     document.getElementById(curr).classList.remove("active");
@@ -253,6 +245,7 @@ window.go = (id) => {
     window.closeCart();
 };
 
+window.toggleTheme = () => document.body.classList.toggle('dark');
 window.openCart = () => {
     document.getElementById('cartOverlay').style.display = "block";
     document.getElementById('cartDrawer').classList.add('open');
@@ -263,18 +256,14 @@ window.closeCart = () => {
     document.getElementById('cartDrawer').classList.remove('open');
 };
 
-// --- CONTACT LOGIC ---
 window.sendInquiry = () => {
     const name = document.getElementById('contactName').value;
     const sub = document.getElementById('contactSubject').value;
     const msg = document.getElementById('contactMsg').value;
     if(!name || !msg) return alert("Please fill Name and Message");
-    
-    const mailtoLink = `mailto:${settings.email}?subject=${encodeURIComponent(sub || 'Inquiry')}&body=${encodeURIComponent("Name: "+name+"\n\n"+msg)}`;
-    window.location.href = mailtoLink;
+    window.location.href = `mailto:${settings.email}?subject=${encodeURIComponent(sub || 'Inquiry')}&body=${encodeURIComponent("Name: "+name+"\n\n"+msg)}`;
 };
 
-// --- LOGIC ---
 window.addToCart = (fid) => {
     const p = prods.find(x => x.fid === fid);
     const ex = cart.find(i => i.fid === fid);
@@ -287,32 +276,37 @@ function renderCart() {
     const list = document.getElementById('cartItemsList');
     if(cart.length === 0) { list.innerHTML = "<p>Empty</p>"; return; }
     let total = cart.reduce((a,b) => a+(b.price*b.qty), 0);
-    list.innerHTML = cart.map(i => `
-        <div style="margin-bottom:15px; display:flex; justify-content:space-between;">
-            <span>${i.name} (x${i.qty})</span>
-            <span>${i.price * i.qty} AED</span>
-        </div>`).join('');
+    list.innerHTML = cart.map(i => `<div style="margin-bottom:15px; display:flex; justify-content:space-between;"><span>${i.name} (x${i.qty})</span><span>${i.price * i.qty} AED</span></div>`).join('');
     document.getElementById('cartTotalDisplay').innerText = total + " AED";
     document.getElementById('checkSummary').innerHTML = `<h3>Items: ${cart.length}</h3><hr>Total: ${total} AED`;
 }
 
 window.placeOrder = () => {
-    const n = document.getElementById('cN').value;
-    if(!n || cart.length === 0) return alert("Missing Info");
+    const n = document.getElementById('cN').value.trim();
+    const p = document.getElementById('cP').value.trim();
+    const a = document.getElementById('cA').value.trim();
+
+    if(!n) return alert("Please enter your Full Name.");
+    if(!p) return alert("Please enter your Phone Number.");
+    if(cart.length === 0) return alert("Your shopping bag is empty.");
+
     const total = cart.reduce((a,b)=>a+(b.price*b.qty),0);
-    const order = { customer: n, phone: document.getElementById('cP').value, items: cart, total: total, status: 'Pending', date: new Date().toISOString() };
+    const order = { customer: n, phone: p, address: a, items: cart, total: total, status: 'Pending', date: new Date().toISOString() };
+
+    const msg = `*New Order from The Archived Mirage*\n\n*Name:* ${n}\n*Phone:* ${p}\n*Address:* ${a}\n\n*Items:* \n` + cart.map(i => `- ${i.name} (x${i.qty})`).join('\n') + `\n\n*Total:* ${total} AED`;
+    const cleanNumber = (settings.whatsapp || '971543108125').replace(/\D/g, '');
+    const waUrl = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(msg)}`;
+
     push(ref(db, 'orders'), order).then(() => {
-        const msg = `Order from ${n}:\n` + cart.map(i => `- ${i.name} x${i.qty}`).join('\n') + `\nTotal: ${total} AED`;
-        window.open(`https://wa.me/${settings.whatsapp || '971543108125'}?text=${encodeURIComponent(msg)}`);
-        cart = []; document.getElementById('cartCount').innerText="0"; go('home');
-    });
+        alert("Order Recorded Successfully! Now redirecting to WhatsApp to finalize.");
+        cart = []; 
+        document.getElementById('cartCount').innerText = "0"; 
+        window.location.href = waUrl;
+    }).catch(e => alert("Error: " + e.message));
 };
 
-// --- FIREBASE SYNC ---
 onValue(ref(db, 'settings'), (s) => {
     settings = s.val() || { whatsapp: "971543108125", email: "nuaimshariff@gmail.com" };
-    document.getElementById('setWA').value = settings.whatsapp;
-    document.getElementById('setEmail').value = settings.email;
     document.getElementById('displayWA').innerText = "+" + settings.whatsapp;
     document.getElementById('displayEmail').innerText = settings.email;
 });
@@ -339,15 +333,13 @@ onValue(ref(db, 'orders'), (s) => {
         </div>`).join('');
 });
 
-// --- ADMIN HELPERS ---
 window.checkAdmin = () => { 
     if(document.getElementById('pass').value === "samariboys@buisness2026") { 
         document.getElementById('adminAuth').style.display="none"; 
         document.getElementById('adminPanel').style.display="block"; 
-    } else {
-        alert("Incorrect Password");
-    }
+    } else { alert("Incorrect Password"); }
 };
+
 window.saveSettings = () => set(ref(db, 'settings'), { whatsapp: document.getElementById('setWA').value, email: document.getElementById('setEmail').value }).then(() => alert("Saved"));
 function renderInventory() { document.getElementById('admProds').innerHTML = prods.map(p => `<div class="admin-box"><input value="${p.name}" onchange="window.upP('${p.fid}', 'name', this.value)"><input value="${p.price}" onchange="window.upP('${p.fid}', 'price', this.value)"><button onclick="window.delP('${p.fid}')" style="background:red; color:white; border:none; padding:5px; cursor:pointer;">Delete</button></div>`).join(''); }
 window.addP = () => push(ref(db, 'products'), {name: "New Item", price: 0, image: "https://via.placeholder.com/400"});
@@ -355,7 +347,6 @@ window.upP = (id, k, v) => update(ref(db, `products/${id}`), {[k]: k==='price'?N
 window.delP = (id) => confirm("Delete?") && remove(ref(db, `products/${id}`));
 window.upStatus = (id, s) => update(ref(db, `orders/${id}`), {status: s});
 window.delO = (id) => confirm("Clear?") && remove(ref(db, `orders/${id}`));
-
 </script>
 </body>
 </html>
