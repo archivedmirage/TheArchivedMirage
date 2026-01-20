@@ -3,248 +3,442 @@
 <head>
 <meta charset="UTF-8">
 <title>The Archived Mirage</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;600&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@300;400;600&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
 
 <style>
 /* THEME VARIABLES */
 :root {
-    --bg: #f6f6f7;
-    --card: #ffffff;
-    --text: #202223;
-    --border: #e1e3e5;
+    --bg: #e3ddd3; /* Darker Luxury Beige */
+    --card: rgba(255, 255, 255, 0.6);
+    --text: #1a1a1a;
+    --border: rgba(0, 0, 0, 0.08);
     --primary: #000000;
-    --accent: #8e8e8e;
+    --accent: #8e8a82;
+    --radius: 15px; 
+    --shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+    --glass-blur: 20px;
 }
 
 body.dark {
-    --bg: #0e0f11;
-    --card: #16181c;
-    --text: #eaeaea;
-    --border: #2a2d33;
+    --bg: #0d0d0c;
+    --card: rgba(26, 26, 24, 0.7);
+    --text: #f0f0f0;
+    --border: rgba(255, 255, 255, 0.1);
     --primary: #ffffff;
-    --accent: #666666;
+    --accent: #aaaaaa;
+    --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
 }
 
-* { box-sizing: border-box; }
-body { margin: 0; font-family: Inter, sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; transition: background 0.4s, color 0.4s; min-height: 100vh; }
+* { box-sizing: border-box; transition: background 0.4s ease, color 0.4s ease, border 0.4s ease; }
+
+/* BETTER LIQUID ANIMATION */
+body { 
+    margin: 0; 
+    font-family: 'Inter', sans-serif; 
+    color: var(--text); 
+    overflow-x: hidden; 
+    line-height: 1.6;
+    min-height: 100vh;
+    background: var(--bg);
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(215, 204, 185, 0.3) 0, transparent 50%), 
+        radial-gradient(at 50% 0%, rgba(237, 232, 222, 0.3) 0, transparent 50%), 
+        radial-gradient(at 100% 0%, rgba(215, 204, 185, 0.3) 0, transparent 50%);
+    background-size: 200% 200%;
+    animation: liquidMovement 10s infinite alternate ease-in-out;
+}
+
+@keyframes liquidMovement {
+    0% { background-position: 0% 0%; }
+    100% { background-position: 100% 100%; }
+}
+
 .brand-font { font-family: 'UnifrakturMaguntia', cursive; }
 
-/* LUXURY INTRO - Z-INDEX FIXED */
+/* LUXURY INTRO UPGRADE */
 #intro {
     position: fixed; inset: 0; background: #000; z-index: 10000;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    color: white; pointer-events: none; opacity: 1; transition: 1s ease;
+    color: white; animation: fadeOut 0.8s ease 3.8s forwards;
+    padding: 20px; text-align: center;
 }
-body.loaded #intro { opacity: 0; visibility: hidden; }
-#intro .line { width: 1px; height: 80px; background: white; margin-bottom: 20px; }
 
-/* HEADER & THEME SLIDER */
-header { background: var(--card); border-bottom: 1px solid var(--border); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 500; }
-.nav-right { display: flex; align-items: center; gap: 20px; }
-nav a { cursor: pointer; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; text-decoration: none; color: inherit; }
+#intro h1 {
+    font-size: 2.5rem; letter-spacing: 8px; margin: 0;
+    animation: textAppear 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    opacity: 0; transform: translateY(20px);
+}
 
-/* THEME SLIDER */
-.theme-switch { position: relative; width: 50px; height: 24px; }
+#intro .line { 
+    width: 0px; height: 1px; background: rgba(255,255,255,0.3); 
+    margin: 25px 0; 
+    animation: lineGrow 1.2s ease 1.2s forwards; 
+}
+
+#intro p {
+    font-size: 0.6rem; letter-spacing: 4px; opacity: 0; text-transform: uppercase;
+    animation: fadeIn 1s ease 2s forwards;
+}
+
+@keyframes textAppear { to { opacity: 1; transform: translateY(0); } }
+@keyframes lineGrow { to { width: 200px; } }
+@keyframes fadeIn { to { opacity: 0.6; } }
+@keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+
+/* HEADER */
+header { 
+    background: var(--card); 
+    border-bottom: 1px solid var(--border); 
+    padding: 15px 20px; 
+    display: flex; 
+    flex-direction: column;
+    gap: 15px;
+    align-items: center; 
+    position: sticky; 
+    top: 0; 
+    z-index: 500;
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+@media (min-width: 768px) {
+    header { flex-direction: row; padding: 20px 40px; justify-content: space-between; }
+    header > div, header > nav { flex: 1; }
+}
+
+.nav-right { 
+    display: flex; 
+    align-items: center; 
+    gap: 20px; 
+    justify-content: flex-end; 
+}
+
+nav { 
+    display: flex; 
+    gap: 15px; 
+    align-items: center; 
+    justify-content: center; 
+    flex-wrap: wrap;
+}
+
+nav a { 
+    cursor: pointer; 
+    font-weight: 400; 
+    font-size: 0.65rem; 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+    text-decoration: none; 
+    color: var(--text);
+    opacity: 0.6;
+}
+nav a:hover { opacity: 1; }
+
+/* THEME SWITCHER */
+.theme-switch { position: relative; width: 40px; height: 20px; }
 .theme-switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; inset: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-input:checked + .slider { background-color: #333; }
-input:checked + .slider:before { transform: translateX(26px); }
-
-/* SECTION SYSTEM */
-main { position: relative; width: 100vw; }
-section {
-    display: none; padding: 25px; 
-    background: var(--bg); 
-    min-height: calc(100vh - 70px);
+.slider {
+    position: absolute; cursor: pointer; inset: 0; 
+    background-color: var(--border);
+    transition: .4s; border-radius: 20px;
 }
-section.active { display: block; position: relative; z-index: 10; }
+.slider:before {
+    position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px;
+    background-color: var(--text); transition: .4s; border-radius: 50%;
+}
+input:checked + .slider:before { transform: translateX(20px); }
 
-/* CATEGORY FILTERS & SEARCH */
-.filter-bar { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-.search-container { max-width: 400px; margin: 0 auto 30px; }
-.filter-btn { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 8px 16px; cursor: pointer; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
-.filter-btn.active { background: var(--primary); color: var(--bg); }
+/* SECTIONS */
+main { 
+    position: relative; 
+    min-height: calc(100vh - 160px); 
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 20px;
+}
 
-/* PRODUCT STOCK STYLING */
-.product { background: var(--card); border: 1px solid var(--border); position: relative; display: flex; flex-direction: column; }
-.product img { width: 100%; height: 350px; object-fit: cover; }
-.out-of-stock-label { position: absolute; top: 0; left: 0; width: 100%; height: 350px; background: rgba(0,0,0,0.6); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; letter-spacing: 2px; pointer-events: none; z-index: 2; }
+section {
+    position: absolute; 
+    width: 95%;
+    max-width: 1200px;
+    max-height: 80vh;
+    padding: 30px 20px; 
+    transition: 0.8s cubic-bezier(0.19, 1, 0.22, 1); 
+    transform: translateY(30px); 
+    opacity: 0;
+    visibility: hidden; 
+    overflow-y: auto; 
+    z-index: 1;
+    background: var(--card);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
 
-/* CART & CHECKOUT UI */
-#cartDrawer { position: fixed; top: 0; right: -400px; width: 380px; max-width: 100%; height: 100%; background: var(--card); z-index: 2000; transition: 0.4s; display: flex; flex-direction: column; box-shadow: -10px 0 30px rgba(0,0,0,0.2); }
+@media (min-width: 768px) {
+    section { padding: 60px 40px; width: 90%; max-height: 85vh; }
+    main { align-items: center; padding-top: 0; }
+}
+
+section.active { 
+    transform: translateY(0); 
+    opacity: 1;
+    visibility: visible; 
+    z-index: 10; 
+    pointer-events: all; 
+}
+
+/* STORE UI */
+.filter-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 30px; }
+.filter-btn {
+    background: transparent; border: 1px solid var(--border); color: var(--text);
+    padding: 8px 15px; cursor: pointer; font-size: 0.6rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1px; border-radius: 30px;
+}
+.filter-btn.active { background: var(--primary); color: var(--bg); border-color: var(--primary); }
+
+.grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+    gap: 15px; 
+    max-width: 1400px; 
+    margin: auto; 
+    padding-bottom: 50px;
+}
+
+@media (min-width: 768px) {
+    .grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 40px; }
+}
+
+.product { 
+    background: rgba(255,255,255,0.05); 
+    transition: transform 0.4s ease;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+.product:hover { transform: translateY(-5px); }
+
+.product img { width: 100%; aspect-ratio: 3/4; object-fit: cover; filter: grayscale(20%); transition: 0.5s; }
+.product:hover img { filter: grayscale(0%); }
+
+.out-of-stock-label {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4); color: white; display: flex;
+    align-items: center; justify-content: center; font-weight: 300;
+    font-size: 0.6rem; letter-spacing: 2px; backdrop-filter: blur(2px);
+}
+
+/* FOOTER COPYRIGHT */
+footer {
+    padding: 30px 20px;
+    text-align: center;
+    font-size: 0.55rem;
+    letter-spacing: 2px;
+    opacity: 0.5;
+    text-transform: uppercase;
+}
+
+.copyright-symbol {
+    cursor: pointer;
+    transition: opacity 0.3s;
+}
+.copyright-symbol:hover { opacity: 1; color: var(--primary); }
+
+/* CART DRAWER */
+#cartDrawer {
+    position: fixed; top: 0; right: -100%; width: 100%; max-width: 450px; height: 100%;
+    background: var(--card); z-index: 2000; transition: 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+    display: flex; flex-direction: column; box-shadow: -20px 0 60px rgba(0,0,0,0.1);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+}
 #cartDrawer.open { right: 0; }
-.cart-content { flex: 1; overflow-y: auto; padding: 20px; }
-.cart-footer { padding: 20px; border-top: 1px solid var(--border); background: var(--card); }
-.checkout-btn { background: var(--primary); color: var(--bg); width: 100%; padding: 18px; font-weight: bold; cursor: pointer; border: none; font-size: 1rem; border-radius: 4px; }
+.cart-content { flex: 1; overflow-y: auto; padding: 25px; }
+.checkout-btn { 
+    background: var(--primary); color: var(--bg); width: 100%; padding: 18px; 
+    font-weight: 600; cursor: pointer; border: none; letter-spacing: 2px;
+    border-radius: var(--radius);
+}
 
-/* GRID & BOXES */
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; max-width: 1200px; margin: auto; }
-.info { padding: 15px; text-align: center; }
-.admin-box { background: var(--card); border: 1px solid var(--border); padding: 20px; border-radius: 8px; margin-bottom: 15px; color: var(--text); }
-input, textarea, select { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border); background: #fff; color: #000; border-radius: 4px; }
-body.dark input, body.dark textarea, body.dark select { background: #1a1a1a; color: #fff; }
-#cartOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1500; display: none; backdrop-filter: blur(4px); }
+/* FORMS */
+.admin-box { background: rgba(255,255,255,0.1); border: 1px solid var(--border); padding: 20px; margin-bottom: 15px; border-radius: var(--radius); }
+input, textarea { 
+    width: 100%; padding: 12px; margin-bottom: 12px; border: none; 
+    border-bottom: 1px solid var(--border); background: transparent; color: inherit; 
+    font-family: inherit; outline: none; font-size: 16px; /* Prevents iOS zoom on focus */
+}
+input:focus { border-bottom-color: var(--primary); }
 
-/* STATUS COLORS */
-.status-tag { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
-.status-Pending { background: #fff3cd; color: #856404; }
-.status-Shipped { background: #cce5ff; color: #004085; }
-.status-Delivered { background: #d4edda; color: #155724; }
+#cartOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px); z-index: 1500; display: none; }
 
-/* MOBILE RESPONSIVE TWEAKS */
+/* CUSTOM SCROLLBAR */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+
+/* Centering overrides for Home */
+#home { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+
+/* RESPONSIVE TYPE */
 @media (max-width: 768px) {
-    .grid { grid-template-columns: 1fr; }
-    .contact-grid, .admin-grid { grid-template-columns: 1fr !important; }
-    header { padding: 10px; }
-    .nav-right { gap: 10px; }
-    nav a { font-size: 0.7rem; }
-    #home h1 { font-size: 2.5rem !important; }
-    #cartDrawer { width: 100%; right: -100%; }
+    #home h1 { font-size: 3rem !important; }
+    #home button { padding: 15px 40px !important; width: 100%; }
+    .contact-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+    .admin-grid { grid-template-columns: 1fr !important; }
+    .brand-font-main { font-size: 1.2rem !important; }
 }
 </style>
 </head>
 
-<body>
+<body class="dark">
 
 <div id="intro">
+    <h1 class="brand-font">The Archived Mirage</h1>
     <div class="line"></div>
-    <h1 class="brand-font" style="font-size: 2.5rem; letter-spacing: 4px;">The Archived Mirage</h1>
-    <p style="font-size: 0.7rem; letter-spacing: 3px; margin-top: 10px; opacity: 0.8;">100% REAL & AUTHENTIC</p>
+    <p>Authenticity in every archive</p>
 </div>
 
 <header>
-    <div class="brand-font" onclick="go('home')" style="cursor:pointer; font-size: 1.2rem;">The Archived Mirage</div>
+    <div class="brand-font brand-font-main" onclick="go('home')" style="cursor:pointer; font-size: 1.8rem; letter-spacing: 2px; white-space: nowrap;">The Archived Mirage</div>
+    
+    <nav>
+        <a onclick="go('home')">Home</a>
+        <a onclick="go('store')">Store</a>
+        <a onclick="go('contact')">Contact</a>
+        <a onclick="openCart()" style="position:relative; opacity: 0.6;">
+            BAG <span id="cartCount" style="font-size: 10px; vertical-align: top; margin-left: 2px;">(0)</span>
+        </a>
+    </nav>
+    
     <div class="nav-right">
         <label class="theme-switch">
-            <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+            <input type="checkbox" id="themeToggle" onchange="toggleTheme()" checked>
             <span class="slider"></span>
         </label>
-        <nav>
-            <a onclick="go('home')">Home</a>
-            <a onclick="go('store')">Store</a>
-            <a onclick="go('contact')">Contact</a>
-            <a onclick="openCart()" style="position:relative; font-size: 1.2rem; cursor:pointer;">🛒<span id="cartCount" style="background:red; color:white; border-radius:50%; padding:2px 6px; font-size:10px; position:absolute; top:-5px; right:-10px;">0</span></a>
-        </nav>
     </div>
 </header>
 
 <main>
     <section id="home" class="active">
-        <div style="text-align:center; padding-top:15vh;">
-            <h1 class="brand-font" style="font-size:4rem; margin:0;">The Archived Mirage</h1>
-            <p style="letter-spacing:5px; opacity: 0.7; font-weight: 600;">100% REAL AND AUTHENTIC PRODUCTS</p>
-            <button onclick="go('store')" style="background:var(--primary); color:var(--bg); padding:18px 45px; border:none; margin-top:30px; cursor:pointer; font-weight:bold; letter-spacing: 2px; border-radius: 4px;">EXPLORE STORE</button>
-        </div>
+        <p style="letter-spacing:5px; font-size: 0.6rem; opacity: 0.5; margin-bottom: 10px;">ESTABLISHED 2026</p>
+        <h1 class="brand-font" style="font-size:6rem; margin:0; line-height: 1;">The Archived <br>Mirage</h1>
+        <button onclick="go('store')" style="background:var(--primary); color:var(--bg); padding:20px 60px; border:none; margin-top:50px; cursor:pointer; font-weight:600; letter-spacing: 3px; font-size: 0.7rem; border-radius: 5px;">SHOP COLLECTION</button>
     </section>
 
     <section id="store">
-        <h2 style="text-align:center; font-family:'Playfair Display'; margin-bottom:20px;">The Collection</h2>
         <div class="search-container">
-            <input type="text" id="storeSearch" placeholder="Search products..." oninput="renderStore()" style="border-radius: 30px; padding-left: 20px;">
+            <input type="text" id="storeSearch" placeholder="SEARCH PIECES..." oninput="renderStore()" style="text-align: center; font-size: 0.8rem; letter-spacing: 2px;">
         </div>
+
         <div class="filter-bar" id="categoryFilters">
             <button class="filter-btn active" onclick="filterBy('All')">All</button>
         </div>
+
         <div class="grid" id="products"></div>
     </section>
 
     <section id="contact">
-        <div style="max-width:800px; margin:auto; padding-top: 20px;">
-            <h2 class="brand-font" style="font-size:2.5rem; text-align:center;">Contact Us</h2>
-            <div class="contact-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px;">
+        <div style="max-width:900px; margin:auto;">
+            <div class="contact-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 80px;">
                 <div>
-                    <h3 style="font-family:'Playfair Display';">Get in Touch</h3>
-                    <p style="opacity:0.8; line-height:1.6;">Have questions about our archived pieces? Reach out through the form or our direct channels.</p>
-                    <div style="margin-top:20px;">
-                        <p><strong>WhatsApp:</strong> <span id="displayWA">971543108125</span></p>
-                        <p><strong>Email:</strong> <span id="displayEmail">nuaimshariff@gmail.com</span></p>
-                        <p><strong>Location:</strong> Dubai, United Arab Emirates</p>
+                    <h2 class="brand-font" style="font-size:3rem; margin-top: 0;">Inquiries</h2>
+                    <p style="opacity:0.6; font-size: 0.85rem; margin-bottom: 40px;">Our team is available for private consultations regarding any archived pieces in our collection.</p>
+                    <div style="font-size: 0.8rem; letter-spacing: 1px;">
+                        <p style="margin-bottom: 20px;"><strong>WHATSAPP</strong><br><span id="displayWA" style="opacity:0.6">Loading...</span></p>
+                        <p style="margin-bottom: 20px;"><strong>EMAIL</strong><br><span id="displayEmail" style="opacity:0.6">Loading...</span></p>
+                        <p><strong>LOCATION</strong><br><span style="opacity:0.6">Dubai, United Arab Emirates</span></p>
                     </div>
                 </div>
-                <div class="admin-box">
-                    <input id="contactName" placeholder="Your Name">
-                    <input id="contactSubject" placeholder="Subject">
-                    <textarea id="contactMsg" placeholder="Message" rows="5"></textarea>
-                    <button onclick="sendInquiry()" style="background:var(--primary); color:var(--bg); width:100%; padding:15px; border:none; font-weight:bold; cursor:pointer; border-radius: 4px;">SEND MESSAGE</button>
+                <div>
+                    <div class="admin-box">
+                        <input id="contactName" placeholder="NAME">
+                        <input id="contactSubject" placeholder="SUBJECT">
+                        <textarea id="contactMsg" placeholder="MESSAGE" rows="5"></textarea>
+                        <button onclick="sendInquiry()" style="background:var(--primary); color:var(--bg); width:100%; padding:20px; border:none; font-weight:bold; cursor:pointer; letter-spacing: 2px; font-size: 0.7rem; border-radius: 5px;">SUBMIT</button>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
     <section id="checkout">
-        <div style="max-width:600px; margin:auto;">
-            <h2 class="brand-font" style="font-size:2rem; text-align:center;">Secure Checkout</h2>
-            <div id="checkSummary" class="admin-box"></div>
+        <div style="max-width:500px; margin:auto;">
+            <h2 class="brand-font" style="font-size:2.5rem; text-align: center;">Finalize</h2>
+            <div id="checkSummary" class="admin-box" style="font-size: 0.9rem; border-style: dashed;"></div>
             <div class="admin-box">
-                <input id="cN" placeholder="Full Name">
-                <input id="cP" placeholder="Phone Number">
-                <textarea id="cA" placeholder="Delivery Address" rows="4"></textarea>
-                <button onclick="placeOrder()" style="background:#25D366; color:white; font-size:1.1rem; padding:15px; width:100%; border:none; font-weight:bold; cursor:pointer; border-radius: 4px;">Place Order</button>
-                <button onclick="go('store')" style="background:none; border:none; width:100%; margin-top:10px; cursor:pointer; text-decoration:underline; color:inherit;">Cancel</button>
+                <input id="cN" placeholder="FULL NAME">
+                <input id="cP" placeholder="PHONE NUMBER">
+                <button onclick="placeOrder()" style="background:#000; color:white; font-size:0.8rem; padding:20px; width:100%; border:none; font-weight:bold; cursor:pointer; letter-spacing: 2px; border-radius: 5px;">PLACE ORDER</button>
             </div>
         </div>
     </section>
 
     <section id="admin">
-        <div id="adminAuth" style="max-width:350px; margin:100px auto; text-align:center; position:relative; z-index:1000;">
-            <h3 style="letter-spacing:2px;">VAULT ACCESS</h3>
-            <input type="password" id="pass" placeholder="Admin Password" style="margin-top:20px;">
-            <button id="loginBtn" onclick="checkAdmin()" style="background:var(--primary); color:var(--bg); width:100%; padding:15px; border:none; cursor:pointer; font-weight:bold; border-radius: 4px;">LOGIN TO DASHBOARD</button>
+        <div id="adminAuth" style="max-width:350px; margin:20px auto; text-align:center;">
+            <h2 class="brand-font">Portal</h2>
+            <input type="password" id="pass" placeholder="PASSWORD" style="text-align: center;">
+            <button onclick="checkAdmin()" style="background:var(--primary); color:var(--bg); width:100%; padding:15px; border:none; margin-top:20px; cursor:pointer; font-weight: bold; letter-spacing: 2px; border-radius: 5px;">ACCESS</button>
         </div>
-        <div id="adminPanel" style="display:none; max-width: 1100px; margin: auto;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h2 class="brand-font">Dashboard</h2>
-                <button onclick="location.reload()" style="padding:5px 15px; cursor:pointer; border:1px solid var(--border);">Logout</button>
+        <div id="adminPanel" style="display:none; max-width: 1000px; margin: auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 15px;">
+                <h2 class="brand-font" style="font-size: 1.5rem;">Dashboard</h2>
+                <button onclick="location.reload()" style="background:none; border: 1px solid var(--border); padding: 8px 15px; cursor:pointer; font-size: 10px; letter-spacing: 1px; border-radius: 5px;">EXIT</button>
             </div>
             
-            <div class="admin-box" style="background:var(--primary); color:var(--bg); text-align:center;">
-                <p style="font-size:0.8rem; margin:0;">TOTAL REVENUE</p>
-                <h1 id="revDisplay" style="margin:10px 0;">0 AED</h1>
-            </div>
-
-            <div class="admin-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="admin-grid" style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
                 <div>
-                    <h3>Active Orders</h3>
-                    <div id="admOrders"></div>
+                    <div class="admin-box" style="background:var(--primary); color:var(--bg); text-align:center;">
+                        <p style="font-size:0.6rem; margin:0; letter-spacing: 2px;">REVENUE</p>
+                        <h1 id="revDisplay" style="margin:10px 0; font-family: 'Playfair Display'; font-size: 1.5rem;">0 AED</h1>
+                    </div>
+                    <h3>Categories</h3>
+                    <div class="admin-box">
+                        <input id="newCatName" placeholder="CATEGORY NAME">
+                        <button onclick="window.addNewCategoryShortcut()" style="background:var(--primary); color:var(--bg); width:100%; padding:12px; border:none; cursor:pointer; font-weight:bold; font-size: 0.7rem; border-radius: 5px;">CREATE</button>
+                    </div>
                 </div>
                 <div>
-                    <h3>Inventory Management</h3>
-                    <div class="admin-box">
-                        <input type="text" id="adminSearch" placeholder="🔍 Search Inventory..." oninput="renderInventory()" style="margin-bottom:15px;">
-                        <div style="display:flex; gap:10px;">
-                            <input id="newCatName" placeholder="New category name" style="margin:0;">
-                            <button onclick="window.addNewCategoryShortcut()" style="background:var(--primary); color:var(--bg); padding:0 20px; border:none; cursor:pointer; font-weight:bold; border-radius: 4px;">ADD</button>
-                        </div>
-                    </div>
-                    <button onclick="window.addP()" style="background:green; color:white; padding:12px; width:100%; border:none; margin-bottom:20px; cursor:pointer; font-weight:bold; border-radius: 4px;">+ ADD PRODUCT</button>
+                    <input type="text" id="adminSearch" placeholder="SEARCH INVENTORY..." oninput="renderInventory()" style="margin-bottom:15px;">
+                    <button onclick="window.addP()" style="background:#1a1a1a; color:white; padding:15px; width:100%; border:none; margin-bottom:20px; cursor:pointer; font-weight: bold; font-size: 0.7rem; border-radius: 5px;">+ NEW PIECE</button>
                     <div id="admProds"></div>
                 </div>
+            </div>
+
+            <h3 style="margin-top: 40px;">Orders & Settings</h3>
+            <div class="admin-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="admin-box">
+                    <input id="setWA" placeholder="WHATSAPP">
+                    <input id="setEmail" placeholder="EMAIL">
+                    <button onclick="saveSettings()" style="background:var(--primary); color:var(--bg); width:100%; padding:15px; border:none; cursor:pointer; font-weight:bold; border-radius: 5px;">SAVE</button>
+                </div>
+                <div id="admOrders"></div>
             </div>
         </div>
     </section>
 </main>
 
 <footer>
-    <div style="text-align:center; padding:40px; border-top:1px solid var(--border); font-size:0.7rem; opacity:0.6;">
-        <span onclick="go('admin')" style="cursor:pointer">©</span> 2026 THE ARCHIVED MIRAGE
-    </div>
+    THE ARCHIVED MIRAGE <span class="copyright-symbol" onclick="go('admin')">©</span> 2026 — ALL RIGHTS RESERVED
 </footer>
 
 <div id="cartOverlay" onclick="closeCart()"></div>
 <div id="cartDrawer">
-    <div style="padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items:center;">
-        <span class="brand-font" style="font-size:1.5rem;">Bag</span>
-        <span onclick="closeCart()" style="cursor:pointer; font-weight:bold;">✕</span>
+    <div style="padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-weight:600; letter-spacing: 2px; font-size: 0.8rem;">SHOPPING BAG</span>
+        <span onclick="closeCart()" style="cursor:pointer; font-size: 0.7rem; opacity: 0.5;">CLOSE</span>
     </div>
     <div class="cart-content" id="cartItemsList"></div>
-    <div class="cart-footer">
-        <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-weight:bold; font-size:1.2rem;">
-            <span>Total</span>
-            <span id="cartTotalDisplay">0 AED</span>
+    <div style="padding: 20px; border-top: 1px solid var(--border);">
+        <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+            <span style="opacity:0.6; font-size: 0.8rem;">Total Amount</span>
+            <span id="cartTotalDisplay" style="font-weight:bold; font-size: 1rem;">0 AED</span>
         </div>
-        <button class="checkout-btn" onclick="goToCheckout()">PROCEED TO CHECKOUT</button>
+        <button class="checkout-btn" onclick="go('checkout')">CHECKOUT</button>
     </div>
 </div>
 
@@ -265,14 +459,14 @@ const app = initializeApp(conf);
 const db = getDatabase(app);
 let prods = [], cart = [], orders = [], settings = {}, curr = "home", activeFilter = "All";
 
-window.addEventListener('load', () => setTimeout(() => document.body.classList.add('loaded'), 1500));
-
 window.go = (id) => {
-    document.querySelectorAll('section').forEach(s => s.classList.remove("active"));
+    if(id === curr) return;
+    document.getElementById(curr).classList.remove("active");
     document.getElementById(id).classList.add("active");
     curr = id;
     window.closeCart();
-    window.scrollTo(0,0);
+    // Scroll to top of section on switch
+    document.getElementById(id).scrollTop = 0;
 };
 
 window.toggleTheme = () => document.body.classList.toggle('dark');
@@ -286,173 +480,194 @@ window.closeCart = () => {
     document.getElementById('cartDrawer').classList.remove('open');
 };
 
+window.sendInquiry = () => {
+    const name = document.getElementById('contactName').value;
+    const sub = document.getElementById('contactSubject').value;
+    const msg = document.getElementById('contactMsg').value;
+    if(!name || !msg) return alert("Please fill Name and Message");
+    window.location.href = `mailto:${settings.email}?subject=${encodeURIComponent(sub || 'Inquiry')}&body=${encodeURIComponent("Name: "+name+"\n\n"+msg)}`;
+};
+
 window.addToCart = (fid) => {
     const p = prods.find(x => x.fid === fid);
-    if(p.stock <= 0) return alert("Out of stock!");
+    if(p.stock <= 0) return alert("Sorry, this item is out of stock!");
     const ex = cart.find(i => i.fid === fid);
-    if(ex && ex.qty >= p.stock) return alert("No more stock available");
+    if(ex && ex.qty >= p.stock) return alert("You've added all available stock to your bag.");
     ex ? ex.qty++ : cart.push({...p, qty: 1});
-    updateCartUI();
+    document.getElementById('cartCount').innerText = `(${cart.reduce((a,b)=>a+b.qty,0)})`;
     window.openCart();
 };
 
-function updateCartUI() {
-    document.getElementById('cartCount').innerText = cart.reduce((a,b)=>a+b.qty,0);
-}
-
 function renderCart() {
     const list = document.getElementById('cartItemsList');
-    if(cart.length === 0) { list.innerHTML = "<p style='text-align:center; margin-top:50px; opacity:0.5;'>Your bag is empty.</p>"; return; }
+    if(cart.length === 0) { list.innerHTML = "<p style='text-align:center; opacity:0.5; margin-top:50px;'>Your bag is empty</p>"; return; }
     let total = cart.reduce((a,b) => a+(b.price*b.qty), 0);
     list.innerHTML = cart.map(i => `
-        <div style="margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:10px;">
-            <div style="display:flex; justify-content:space-between; font-weight:600;">
-                <span>${i.name}</span>
-                <span>${i.price * i.qty} AED</span>
+        <div style="margin-bottom:25px; display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid var(--border); padding-bottom: 15px;">
+            <div>
+                <div style="font-weight:600; font-size: 0.85rem;">${i.name}</div>
+                <div style="font-size: 0.7rem; opacity:0.6;">Quantity: ${i.qty}</div>
             </div>
-            <div style="font-size:0.8rem; opacity:0.6;">Quantity: ${i.qty}</div>
-            <button onclick="removeFromCart('${i.fid}')" style="background:none; border:none; color:red; cursor:pointer; padding:0; font-size:0.7rem;">Remove</button>
+            <div style="font-weight:bold; font-size: 0.85rem;">${i.price * i.qty} AED</div>
         </div>`).join('');
     document.getElementById('cartTotalDisplay').innerText = total + " AED";
+    document.getElementById('checkSummary').innerHTML = `<div style="display:flex; justify-content:space-between;"><span>Items:</span><span>${cart.length}</span></div><div style="display:flex; justify-content:space-between; margin-top:10px; font-weight:bold;"><span>Total:</span><span>${total} AED</span></div>`;
 }
-
-window.removeFromCart = (fid) => {
-    cart = cart.filter(i => i.fid !== fid);
-    updateCartUI();
-    renderCart();
-};
-
-window.goToCheckout = () => {
-    if(cart.length === 0) return alert("Bag is empty");
-    const total = cart.reduce((a,b) => a+(b.price*b.qty), 0);
-    document.getElementById('checkSummary').innerHTML = `
-        <h3>Order Summary</h3>
-        ${cart.map(i => `<div>${i.name} x ${i.qty}</div>`).join('')}
-        <hr>
-        <div style="font-weight:bold; font-size:1.2rem; margin-top:10px;">Total: ${total} AED</div>
-    `;
-    go('checkout');
-};
 
 window.placeOrder = async () => {
     const n = document.getElementById('cN').value.trim();
     const p = document.getElementById('cP').value.trim();
-    const a = document.getElementById('cA').value.trim();
-    if(!n || !p) return alert("Name and Phone are required.");
+
+    if(!n) return alert("Please enter your Full Name.");
+    if(!p) return alert("Please enter your Phone Number.");
+    if(cart.length === 0) return alert("Your shopping bag is empty.");
 
     const total = cart.reduce((a,b)=>a+(b.price*b.qty),0);
-    const orderData = { customer: n, phone: p, address: a, items: cart, total: total, status: 'Pending', date: new Date().toISOString() };
+    const order = { 
+        customer: n, 
+        phone: p, 
+        items: cart.map(i => ({name: i.name, qty: i.qty, price: i.price})), 
+        total: total, 
+        status: 'Pending', 
+        date: new Date().toISOString() 
+    };
 
     try {
-        await push(ref(db, 'orders'), orderData);
-        // Deduct Stock
+        await push(ref(db, 'orders'), order);
+
         for (const item of cart) {
-            const currentP = prods.find(x => x.fid === item.fid);
-            update(ref(db, `products/${item.fid}`), { stock: Math.max(0, currentP.stock - item.qty) });
+            const productRef = ref(db, `products/${item.fid}`);
+            const snapshot = await get(productRef);
+            if(snapshot.exists()) {
+                const currentStock = snapshot.val().stock || 0;
+                await update(productRef, { stock: Math.max(0, currentStock - item.qty) });
+            }
         }
         
-        const msg = `*New Order:*\nName: ${n}\nTotal: ${total} AED\nItems: ${cart.map(i => i.name).join(', ')}`;
-        window.location.href = `https://wa.me/${settings.whatsapp || '971543108125'}?text=${encodeURIComponent(msg)}`;
-        
-        cart = [];
-        updateCartUI();
-        alert("Order successful!");
-        go('home');
-    } catch (e) { alert("Error: " + e.message); }
+        const msg = `*New Order from The Archived Mirage*\n\n*Name:* ${n}\n*Phone:* ${p}\n\n*Items:* \n` + cart.map(i => `- ${i.name} (x${i.qty})`).join('\n') + `\n\n*Total:* ${total} AED`;
+        const cleanNumber = (settings.whatsapp || '971543108125').replace(/\D/g, '');
+        const waUrl = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(msg)}`;
+
+        alert("Order Successful! Opening WhatsApp for confirmation...");
+        cart = []; 
+        document.getElementById('cartCount').innerText = "(0)"; 
+        window.location.href = waUrl;
+    } catch (e) {
+        alert("Transaction error: " + e.message);
+    }
 };
 
-window.checkAdmin = () => {
-    if(document.getElementById('pass').value === "samariboys@buisness2026") {
-        document.getElementById('adminAuth').style.display="none";
-        document.getElementById('adminPanel').style.display="block";
-    } else { alert("Wrong password"); }
-};
+onValue(ref(db, 'settings'), (s) => {
+    settings = s.val() || { whatsapp: "971543108125", email: "nuaimshariff@gmail.com" };
+    document.getElementById('displayWA').innerText = "+" + settings.whatsapp;
+    document.getElementById('displayEmail').innerText = settings.email;
+});
 
-onValue(ref(db, 'products'), (s) => {
-    prods = s.val() ? Object.entries(s.val()).map(([id, v]) => ({...v, fid: id})) : [];
+window.filterBy = (cat) => {
+    activeFilter = cat;
     renderStore();
-    renderInventory();
-});
-
-onValue(ref(db, 'orders'), (s) => {
-    orders = s.val() ? Object.entries(s.val()).map(([id, v]) => ({...v, fid: id})) : [];
-    const totalRev = orders.reduce((a,b) => a + Number(b.total), 0);
-    document.getElementById('revDisplay').innerText = totalRev + " AED";
-    
-    document.getElementById('admOrders').innerHTML = orders.slice().reverse().map(o => `
-        <div class="admin-box" style="border-left: 5px solid black;">
-            <div style="display:flex; justify-content:space-between;">
-                <strong>${o.customer}</strong>
-                <span class="status-tag status-${o.status}">${o.status}</span>
-            </div>
-            <div style="font-size:0.8rem; margin:5px 0;">${o.phone} | ${o.total} AED</div>
-            <select onchange="updateStatus('${o.fid}', this.value)" style="margin-bottom:5px; font-size:0.7rem;">
-                <option value="Pending" ${o.status==='Pending'?'selected':''}>Pending</option>
-                <option value="Shipped" ${o.status==='Shipped'?'selected':''}>Shipped</option>
-                <option value="Delivered" ${o.status==='Delivered'?'selected':''}>Delivered</option>
-            </select>
-            <button onclick="delO('${o.fid}')" style="background:none; border:none; color:red; cursor:pointer; font-size:0.7rem; float:right;">Delete</button>
-        </div>`).join('');
-});
-
-window.updateStatus = (id, s) => update(ref(db, `orders/${id}`), {status: s});
-window.delO = (id) => confirm("Delete order record?") && remove(ref(db, `orders/${id}`));
+};
 
 window.renderStore = () => {
     const query = document.getElementById('storeSearch').value.toLowerCase();
     const cats = ["All", ...new Set(prods.map(p => p.category).filter(c => c))];
-    document.getElementById('categoryFilters').innerHTML = cats.map(c => `<button class="filter-btn ${activeFilter === c ? 'active' : ''}" onclick="filterBy('${c}')">${c}</button>`).join('');
+    
+    document.getElementById('categoryFilters').innerHTML = cats.map(c => `
+        <button class="filter-btn ${activeFilter === c ? 'active' : ''}" onclick="filterBy('${c}')">${c}</button>
+    `).join('');
 
     let filtered = activeFilter === "All" ? prods : prods.filter(p => p.category === activeFilter);
-    if(query) filtered = filtered.filter(p => p.name.toLowerCase().includes(query));
+    if(query) filtered = filtered.filter(p => p.name.toLowerCase().includes(query) || p.category?.toLowerCase().includes(query));
 
-    document.getElementById("products").innerHTML = filtered.map(p => `
+    document.getElementById("products").innerHTML = filtered.map(p => {
+        const isOOS = p.stock <= 0;
+        return `
         <div class="product">
-            ${p.stock <= 0 ? '<div class="out-of-stock-label">OUT OF STOCK</div>' : ''}
-            <img src="${p.image || 'https://via.placeholder.com/400'}">
-            <div class="info">
-                <div style="font-size:0.7rem; opacity:0.5; text-transform:uppercase;">${p.category}</div>
-                <strong>${p.name}</strong><br>${p.price} AED
-                <button onclick="addToCart('${p.fid}')" ${p.stock <= 0 ? 'disabled' : ''} style="background:var(--primary); color:var(--bg); border:none; width:100%; padding:10px; margin-top:10px; cursor:pointer; font-weight:bold; border-radius: 4px;">
-                    ${p.stock <= 0 ? 'SOLD OUT' : 'ADD TO BAG'}
+            <div style="position:relative; overflow:hidden;">
+                ${isOOS ? '<div class="out-of-stock-label">OUT OF STOCK</div>' : ''}
+                <img src="${p.image}">
+            </div>
+            <div class="info" style="padding:12px; text-align:left;">
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    <strong style="font-size: 0.75rem; text-transform:uppercase; letter-spacing:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name}</strong>
+                    <div style="font-size: 0.6rem; opacity:0.5;">${p.category || 'Archive'}</div>
+                    <div style="font-weight:600; font-size: 0.8rem; margin-top:2px;">${p.price} AED</div>
+                </div>
+                <button onclick="addToCart('${p.fid}')" ${isOOS ? 'disabled' : ''} style="background:${isOOS ? 'transparent' : 'var(--primary)'}; color:${isOOS ? 'var(--accent)' : 'var(--bg)'}; border:${isOOS ? '1px solid var(--border)' : 'none'}; width:100%; padding:10px; margin-top:10px; cursor:${isOOS ? 'not-allowed' : 'pointer'}; font-size: 0.6rem; font-weight:bold; letter-spacing:1px; border-radius:5px;">
+                    ${isOOS ? 'SOLD OUT' : 'ADD TO BAG'}
                 </button>
             </div>
-        </div>`).join('');
-};
+        </div>`
+    }).join('');
+}
 
-window.filterBy = (cat) => { activeFilter = cat; renderStore(); };
+onValue(ref(db, 'products'), (s) => {
+    prods = s.val() ? Object.entries(s.val()).map(([id, v]) => ({...v, fid: id})) : [];
+    window.renderStore();
+    window.renderInventory();
+});
 
-window.renderInventory = () => {
-    const query = document.getElementById('adminSearch').value.toLowerCase();
-    const filtered = prods.filter(p => p.name.toLowerCase().includes(query));
-    document.getElementById('admProds').innerHTML = filtered.map(p => `
-        <div class="admin-box">
-            <input value="${p.name}" onchange="upP('${p.fid}','name',this.value)" placeholder="Name">
-            <input value="${p.image}" onchange="upP('${p.fid}','image',this.value)" placeholder="Image URL">
-            <div style="display:flex; gap:10px;">
-                <input type="number" value="${p.price}" onchange="upP('${p.fid}','price',this.value)" placeholder="Price">
-                <input type="number" value="${p.stock}" onchange="upP('${p.fid}','stock',this.value)" placeholder="Stock">
+onValue(ref(db, 'orders'), (s) => {
+    orders = s.val() ? Object.entries(s.val()).map(([id, v]) => ({...v, fid: id})) : [];
+    const rev = orders.filter(o => o.status === 'Delivered' && new Date(o.date).getMonth() === new Date().getMonth()).reduce((a,b)=>a+Number(b.total), 0);
+    document.getElementById('revDisplay').innerText = rev + " AED";
+    document.getElementById('admOrders').innerHTML = orders.slice().reverse().map(o => `
+        <div class="admin-box" style="border-left: 4px solid ${o.status==='Pending'?'#ffcc00':'#00ff00'}; padding: 15px;">
+            <div style="font-size:0.8rem; font-weight:bold;">${o.customer}</div>
+            <div style="font-size:0.7rem; opacity:0.6;">${o.total} AED • ${o.status}</div>
+            <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:10px;">
+                <button onclick="window.upStatus('${o.fid}', 'Delivered')" style="background:#000; color:#fff; border:none; padding:5px 10px; cursor:pointer; font-size:9px;">MARK DELIVERED</button>
+                <button onclick="window.delO('${o.fid}')" style="background:none; border: 1px solid #ff0000; color:#ff0000; padding:5px 10px; cursor:pointer; font-size:9px;">DELETE</button>
             </div>
-            <input value="${p.category}" onchange="upP('${p.fid}','category',this.value)" placeholder="Category">
-            <button onclick="delP('${p.fid}')" style="background:red; color:white; border:none; width:100%; padding:8px; cursor:pointer; border-radius: 4px;">Delete Product</button>
         </div>`).join('');
+});
+
+window.checkAdmin = () => { 
+    if(document.getElementById('pass').value === "samariboys@buisness2026") { 
+        document.getElementById('adminAuth').style.display="none"; 
+        document.getElementById('adminPanel').style.display="block"; 
+    } else { alert("Incorrect Password"); }
 };
 
-window.addP = () => push(ref(db, 'products'), {name: "New Piece", price: 0, stock: 1, category: "Archive", image: ""});
-window.upP = (id, k, v) => update(ref(db, `products/${id}`), {[k]: (k==='price'||k==='stock')?Number(v):v});
-window.delP = (id) => confirm("Delete?") && remove(ref(db, `products/${id}`));
+window.saveSettings = () => set(ref(db, 'settings'), { whatsapp: document.getElementById('setWA').value, email: document.getElementById('setEmail').value }).then(() => alert("Saved"));
+
+window.renderInventory = () => { 
+    const query = document.getElementById('adminSearch')?.value.toLowerCase() || "";
+    const filtered = prods.filter(p => p.name.toLowerCase().includes(query) || p.category?.toLowerCase().includes(query));
+
+    document.getElementById('admProds').innerHTML = filtered.map(p => {
+        const isLow = p.stock > 0 && p.stock <= 2;
+        const isOut = p.stock <= 0;
+        return `
+        <div class="admin-box" style="border: 1px solid ${(isLow || isOut) ? 'red' : 'var(--border)'};">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                 <span style="font-size:10px; font-weight:bold; color:red;">${isLow ? 'LOW STOCK' : (isOut ? 'OUT OF STOCK' : '')}</span>
+                 <span onclick="window.delP('${p.fid}')" style="color:red; cursor:pointer; font-size:10px;">REMOVE</span>
+            </div>
+            <input placeholder="Item Name" value="${p.name}" onchange="window.upP('${p.fid}', 'name', this.value)">
+            <input placeholder="Category" value="${p.category || ''}" onchange="window.upP('${p.fid}', 'category', this.value)">
+            <div style="display:flex; gap:10px;">
+                <input type="number" placeholder="Price" value="${p.price}" onchange="window.upP('${p.fid}', 'price', this.value)">
+                <input type="number" placeholder="Stock" value="${p.stock || 0}" onchange="window.upP('${p.fid}', 'stock', this.value)">
+            </div>
+        </div>`;
+    }).join(''); 
+}
+
+window.addP = () => push(ref(db, 'products'), {name: "New Item", price: 0, stock: 1, category: "Archive", image: "https://via.placeholder.com/400"});
+
 window.addNewCategoryShortcut = () => {
-    const c = document.getElementById('newCatName').value;
-    if(!c) return;
-    push(ref(db, 'products'), {name: "Template Item", price: 0, stock: 0, category: c, image: ""});
+    const cat = document.getElementById('newCatName').value.trim();
+    if(!cat) return alert("Please enter a category name");
+    push(ref(db, 'products'), {name: "Template Item", price: 0, stock: 0, category: cat, image: "https://via.placeholder.com/400"});
     document.getElementById('newCatName').value = "";
+    alert("New category created with a template item.");
 };
 
-onValue(ref(db, 'settings'), (s) => { settings = s.val() || {whatsapp: "971543108125"}; });
-window.sendInquiry = () => {
-    const msg = document.getElementById('contactMsg').value;
-    window.location.href = `mailto:nuaimshariff@gmail.com?body=${encodeURIComponent(msg)}`;
-};
+window.upP = (id, k, v) => update(ref(db, `products/${id}`), {[k]: (k==='price' || k==='stock') ? Number(v) : v});
+window.delP = (id) => confirm("Delete?") && remove(ref(db, `products/${id}`));
+window.upStatus = (id, s) => update(ref(db, `orders/${id}`), {status: s});
+window.delO = (id) => confirm("Clear?") && remove(ref(db, `orders/${id}`));
 </script>
 </body>
 </html>
