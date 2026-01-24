@@ -340,6 +340,15 @@ footer { padding: 30px; text-align: center; font-size: 0.55rem; letter-spacing: 
         <div style="max-width:500px; margin:auto;">
             <h2 class="brand-font" style="font-size:2.5rem; text-align: center;">Finalize</h2>
             <div id="checkSummary" class="admin-box" style="font-size: 0.8rem; border-style: dashed; margin-bottom: 20px;"></div>
+            
+            <div class="admin-box" style="margin-bottom:20px;">
+                <div style="display:flex; gap:10px;">
+                    <input id="promoInput" placeholder="PROMO CODE" style="flex:1;">
+                    <button onclick="window.applyPromo()" style="background:var(--primary); color:var(--bg); border:none; padding:0 20px; border-radius:8px; cursor:pointer; font-size:0.6rem; font-weight:bold; letter-spacing:1px;">APPLY</button>
+                </div>
+                <p id="promoMsg" style="font-size:0.6rem; margin:0; display:none; letter-spacing:1px;"></p>
+            </div>
+
             <div class="admin-box">
                 <input id="cN" placeholder="FULL NAME">
                 <input id="cP" placeholder="PHONE NUMBER">
@@ -368,6 +377,15 @@ footer { padding: 30px; text-align: center; font-size: 0.55rem; letter-spacing: 
                         <p style="font-size:0.5rem; margin:0; letter-spacing: 2px;">REVENUE</p>
                         <h2 id="revDisplay" style="margin:5px 0; font-family: 'Playfair Display';">0 AED</h2>
                     </div>
+                    
+                    <h3 style="font-size: 0.8rem; letter-spacing: 2px; margin-top: 20px;">PROMO CODES</h3>
+                    <div class="admin-box">
+                        <input id="newPromoCode" placeholder="CODE (e.g. SAVE20)">
+                        <input id="newPromoVal" type="number" placeholder="DISCOUNT % (e.g. 20)">
+                        <button onclick="window.addPromo()" style="background:var(--primary); color:var(--bg); width:100%; padding:10px; border:none; cursor:pointer; font-size: 0.7rem; border-radius: 5px;">ADD CODE</button>
+                        <div id="promoList" style="margin-top:10px; font-size: 0.7rem; max-height: 150px; overflow-y: auto;"></div>
+                    </div>
+
                     <h3 style="font-size: 0.8rem; letter-spacing: 2px; margin-top: 20px;">CATEGORIES</h3>
                     <div class="admin-box">
                         <input id="newCatName" placeholder="NAME">
@@ -430,7 +448,9 @@ const conf = {
 
 const app = initializeApp(conf);
 const db = getDatabase(app);
-let prods = [], cart = [], orders = [], settings = {}, curr = "home", activeFilter = "All";
+let prods = [], cart = [], orders = [], settings = {}, promos = [], curr = "home", activeFilter = "All";
+let appliedDiscount = 0;
+let appliedPromoCode = "";
 
 window.go = (id) => {
     if(id === curr) return;
@@ -438,6 +458,7 @@ window.go = (id) => {
     document.getElementById(id).classList.add("active");
     curr = id;
     window.closeCart();
+    if(id === 'checkout') renderCart();
 };
 
 window.toggleTheme = () => document.body.classList.toggle('dark');
@@ -469,20 +490,82 @@ window.addToCart = (fid) => {
     window.openCart();
 };
 
+// PROMO LOGIC
+window.applyPromo = () => {
+    const input = document.getElementById('promoInput').value.toUpperCase().trim();
+    const msg = document.getElementById('promoMsg');
+    const match = promos.find(p => p.code === input);
+    
+    if (match) {
+        appliedDiscount = match.value / 100;
+        appliedPromoCode = input;
+        msg.innerText = `SUCCESS: ${match.value}% DISCOUNT APPLIED`;
+        msg.style.color = "#4CAF50";
+        msg.style.display = "block";
+        renderCart();
+    } else {
+        appliedDiscount = 0;
+        appliedPromoCode = "";
+        msg.innerText = "INVALID PROMO CODE";
+        msg.style.color = "red";
+        msg.style.display = "block";
+        renderCart();
+    }
+};
+
+window.addPromo = () => {
+    const code = document.getElementById('newPromoCode').value.toUpperCase().trim();
+    const val = Number(document.getElementById('newPromoVal').value);
+    if(!code || !val) return alert("Enter code and value");
+    push(ref(db, 'promos'), {code, value: val}).then(() => {
+        document.getElementById('newPromoCode').value = "";
+        document.getElementById('newPromoVal').value = "";
+    });
+};
+
+onValue(ref(db, 'promos'), (s) => {
+    promos = s.val() ? Object.entries(s.val()).map(([id, v]) => ({...v, fid: id})) : [];
+    document.getElementById('promoList').innerHTML = promos.map(p => `
+        <div style="display:flex; justify-content:space-between; margin-bottom:5px; border-bottom:1px solid var(--border); padding-bottom:2px;">
+            <span>${p.code} (${p.value}%)</span>
+            <span onclick="remove(ref(db, 'promos/${p.fid}'))" style="color:red; cursor:pointer;">×</span>
+        </div>`).join('');
+});
+
 function renderCart() {
     const list = document.getElementById('cartItemsList');
-    if(cart.length === 0) { list.innerHTML = "<p style='text-align:center; opacity:0.5; margin-top:50px;'>Your bag is empty</p>"; return; }
-    let total = cart.reduce((a,b) => a+(b.price*b.qty), 0);
-    list.innerHTML = cart.map(i => `
-        <div style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
-            <div>
-                <div style="font-weight:600; font-size: 0.8rem;">${i.name}</div>
-                <div style="font-size: 0.7rem; opacity:0.6;">Qty: ${i.qty}</div>
-            </div>
-            <div style="font-weight:bold; font-size: 0.85rem;">${i.price * i.qty} AED</div>
-        </div>`).join('');
+    if(cart.length === 0) { 
+        if(list) list.innerHTML = "<p style='text-align:center; opacity:0.5; margin-top:50px;'>Your bag is empty</p>"; 
+        return; 
+    }
+    
+    let subtotal = cart.reduce((a,b) => a+(b.price*b.qty), 0);
+    let savings = subtotal * appliedDiscount;
+    let total = subtotal - savings;
+
+    if(list) {
+        list.innerHTML = cart.map(i => `
+            <div style="margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+                <div>
+                    <div style="font-weight:600; font-size: 0.8rem;">${i.name}</div>
+                    <div style="font-size: 0.7rem; opacity:0.6;">Qty: ${i.qty}</div>
+                </div>
+                <div style="font-weight:bold; font-size: 0.85rem;">${i.price * i.qty} AED</div>
+            </div>`).join('');
+    }
+
     document.getElementById('cartTotalDisplay').innerText = total + " AED";
-    document.getElementById('checkSummary').innerHTML = `<div style="display:flex; justify-content:space-between;"><span>Items:</span><span>${cart.length}</span></div><div style="display:flex; justify-content:space-between; margin-top:10px; font-weight:bold;"><span>Total:</span><span>${total} AED</span></div>`;
+    
+    let summaryHTML = `<div style="display:flex; justify-content:space-between;"><span>Items:</span><span>${cart.length}</span></div>`;
+    summaryHTML += `<div style="display:flex; justify-content:space-between; margin-top:5px;"><span>Subtotal:</span><span>${subtotal} AED</span></div>`;
+    
+    if(appliedDiscount > 0) {
+        summaryHTML += `<div style="display:flex; justify-content:space-between; margin-top:5px; color:#4CAF50;"><span>Discount (${appliedPromoCode}):</span><span>-${savings} AED</span></div>`;
+    }
+    
+    summaryHTML += `<div style="display:flex; justify-content:space-between; margin-top:10px; font-weight:bold; border-top: 1px solid var(--border); padding-top:10px;"><span>Total:</span><span>${total} AED</span></div>`;
+    
+    document.getElementById('checkSummary').innerHTML = summaryHTML;
 }
 
 window.placeOrder = async () => {
@@ -490,8 +573,20 @@ window.placeOrder = async () => {
     const p = document.getElementById('cP').value.trim();
     if(!n || !p) return alert("Fill your details.");
     if(cart.length === 0) return alert("Bag is empty.");
-    const total = cart.reduce((a,b)=>a+(b.price*b.qty),0);
-    const order = { customer: n, phone: p, items: cart.map(i => ({name: i.name, qty: i.qty, price: i.price})), total: total, status: 'Pending', date: new Date().toISOString() };
+    
+    const subtotal = cart.reduce((a,b)=>a+(b.price*b.qty),0);
+    const total = subtotal - (subtotal * appliedDiscount);
+    
+    const order = { 
+        customer: n, 
+        phone: p, 
+        items: cart.map(i => ({name: i.name, qty: i.qty, price: i.price})), 
+        total: total, 
+        promo: appliedPromoCode || "None",
+        status: 'Pending', 
+        date: new Date().toISOString() 
+    };
+
     try {
         await push(ref(db, 'orders'), order);
         for (const item of cart) {
@@ -502,10 +597,17 @@ window.placeOrder = async () => {
                 await update(productRef, { stock: Math.max(0, currentStock - item.qty) });
             }
         }
-        const msg = `*New Order*\n*Name:* ${n}\n*Items:* \n` + cart.map(i => `- ${i.name} (x${i.qty})`).join('\n') + `\n*Total:* ${total} AED`;
+        let msg = `*New Order*\n*Name:* ${n}\n*Items:* \n` + cart.map(i => `- ${i.name} (x${i.qty})`).join('\n');
+        if(appliedPromoCode) msg += `\n*Promo Used:* ${appliedPromoCode}`;
+        msg += `\n*Total:* ${total} AED`;
+        
         const waUrl = `https://wa.me/${(settings.whatsapp || '971543108125').replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`;
         alert("Order Successful!");
-        cart = []; document.getElementById('cartCount').innerText = "(0)"; window.location.href = waUrl;
+        cart = []; 
+        appliedDiscount = 0;
+        appliedPromoCode = "";
+        document.getElementById('cartCount').innerText = "(0)"; 
+        window.location.href = waUrl;
     } catch (e) { alert(e.message); }
 };
 
@@ -560,6 +662,7 @@ onValue(ref(db, 'orders'), (s) => {
             <div id="details-${o.fid}" style="display:none; margin-top:10px; padding-top:10px; border-top:1px solid var(--border); opacity:0.8;">
                 <p><strong>Phone:</strong> ${o.phone}</p>
                 <p><strong>Items:</strong><br>${o.items.map(i => `• ${i.name} (x${i.qty})`).join('<br>')}</p>
+                <p><strong>Promo:</strong> ${o.promo || 'None'}</p>
                 <p style="font-size: 8px;">${new Date(o.date).toLocaleString()}</p>
             </div>
             <div style="margin-top:10px; display:flex; gap:5px;">
